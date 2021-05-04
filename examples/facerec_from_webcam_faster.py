@@ -1,6 +1,8 @@
 import face_recognition
 import cv2
 import numpy as np
+from dispFps import DispFps
+import csv
 
 # This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
 # other example, but it includes some basic performance tweaks to make things run a lot faster:
@@ -15,7 +17,7 @@ import numpy as np
 video_capture = cv2.VideoCapture(0)
 
 # Load a sample picture and learn how to recognize it.
-obama_image = face_recognition.load_image_file("obama.jpg")
+obama_image = face_recognition.load_image_file("me.jpg")
 obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
 
 # Load a second sample picture and learn how to recognize it.
@@ -28,7 +30,7 @@ known_face_encodings = [
     biden_face_encoding
 ]
 known_face_names = [
-    "Barack Obama",
+    "me",
     "Joe Biden"
 ]
 
@@ -37,6 +39,9 @@ face_locations = []
 face_encodings = []
 face_names = []
 process_this_frame = True
+
+csvdata = []
+dispFps = DispFps()
 
 while True:
     # Grab a single frame of video
@@ -92,11 +97,23 @@ while True:
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
+    time, fps, cpu_temp, cpu_mem, gpu_mem = dispFps.disp(frame)
+    fps = fps.replace('FPS: ', '')
+    cpu_temp = cpu_temp.replace('\'C', '')
+    cpu_mem = cpu_mem.replace('M', '')
+    gpu_mem = gpu_mem.replace('M', '')
+    csvdata.append([time, fps, cpu_temp, cpu_mem, gpu_mem])
+
     # Display the resulting image
     cv2.imshow('Video', frame)
 
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        header = [['time(s)', 'FPS(1/s)', 'CPU Temperature(\'C)', 'CPU Memory Consumption(MB)', 'GPU Memory Consumption(MB)']]
+        with open("csvdata.csv", "w") as f:
+            writer = csv.writer(f, lineterminator="\n")
+            csvdata = header + csvdata
+            writer.writerows(csvdata)
         break
 
 # Release handle to the webcam
