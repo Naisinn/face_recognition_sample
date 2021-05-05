@@ -26,12 +26,6 @@ class DispFps():
         # CPU temperature variables
         self.__cpu_temperature = 0
 
-        # CPU memory consumption variables
-        self.__cpu_mem_consumption = 0
-
-        # GPU memory consumption variables
-        self.__gpu_mem_consumption = 0
-
         # init time
         self.__t0 = time.time()
 
@@ -58,22 +52,6 @@ class DispFps():
         tmp = tmp[1].replace('\\n\"', '')
         self.__cpu_temperature = tmp
 
-        # update CPU memory consumption
-        command = ["vcgencmd", "get_mem", "arm"]
-        result = subprocess.run(command, stdout=subprocess.PIPE)
-        tmp = str(result.stdout)
-        tmp = tmp.split('=')
-        tmp = tmp[1].replace('\\n\'', '')
-        self.__cpu_mem_consumption = tmp
-
-        # update GPU memory consumption
-        command = ["vcgencmd", "get_mem", "gpu"]
-        result = subprocess.run(command, stdout=subprocess.PIPE)
-        tmp = str(result.stdout)
-        tmp = tmp.split('=')
-        tmp = tmp[1].replace('\\n\'', '')
-        self.__gpu_mem_consumption = tmp
-
     def __disp(self, frame, str, x1, y1, x2, y2):
         cv2.rectangle(frame, (x1, y1), (x2, y2), self.__background_color, -1)
         cv2.putText(frame, str, (x1 + 5, y2 - 5), self.__font_style, self.__font_size, self.__font_color, self.__font_width)
@@ -88,10 +66,4 @@ class DispFps():
         screen_width = int(frame.shape[1])
         self.__disp(frame, self.__str, screen_width - self.__width, 0, screen_width, self.__height)
 
-        # CPU memory consumption
-        self.__disp(frame, str(self.__cpu_mem_consumption), 0, self.__height, x2 = self.__width, y2 = self.__height * 2)
-
-        # GPU memory consumption
-        self.__disp(frame, str(self.__gpu_mem_consumption), 0, self.__height * 2, x2 = self.__width, y2 = self.__height * 3)
-
-        return time.time() - self.__t0, self.__str, self.__cpu_temperature, self.__cpu_mem_consumption, self.__gpu_mem_consumption
+        return time.time() - self.__t0, self.__str, self.__cpu_temperature

@@ -17,21 +17,21 @@ import csv
 video_capture = cv2.VideoCapture(0)
 
 # Load a sample picture and learn how to recognize it.
-obama_image = face_recognition.load_image_file("me.jpg")
-obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
+me_image = face_recognition.load_image_file("me.jpg")
+known_face_encoding0 = face_recognition.face_encodings(me_image)[0]
 
-# Load a second sample picture and learn how to recognize it.
-biden_image = face_recognition.load_image_file("biden.jpg")
-biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
+# Load a sample picture and learn how to recognize it.
+me_image2 = face_recognition.load_image_file("me2.jpg")
+known_face_encoding1 = face_recognition.face_encodings(me_image2)[0]
 
 # Create arrays of known face encodings and their names
 known_face_encodings = [
-    obama_face_encoding,
-    biden_face_encoding
+    known_face_encoding0,
+    known_face_encoding1
 ]
 known_face_names = [
     "me",
-    "Joe Biden"
+    "me2"
 ]
 
 # Initialize some variables
@@ -62,7 +62,7 @@ while True:
         face_names = []
         for face_encoding in face_encodings:
             # See if the face is a match for the known face(s)
-            matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+            matches = face_recognition.compare_faces(known_face_encodings, face_encoding, 1)
             name = "Unknown"
 
             # # If a match was found in known_face_encodings, just use the first one.
@@ -97,19 +97,17 @@ while True:
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-    time, fps, cpu_temp, cpu_mem, gpu_mem = dispFps.disp(frame)
+    time, fps, cpu_temp = dispFps.disp(frame)
     fps = fps.replace('FPS: ', '')
     cpu_temp = cpu_temp.replace('\'C', '')
-    cpu_mem = cpu_mem.replace('M', '')
-    gpu_mem = gpu_mem.replace('M', '')
-    csvdata.append([time, fps, cpu_temp, cpu_mem, gpu_mem])
+    csvdata.append([time, fps, cpu_temp])
 
     # Display the resulting image
     cv2.imshow('Video', frame)
 
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        header = [['time(s)', 'FPS(1/s)', 'CPU Temperature(\'C)', 'CPU Memory Consumption(MB)', 'GPU Memory Consumption(MB)']]
+        header = [['time(s)', 'FPS(1/s)', 'CPU Temperature(\'C)']]
         with open("csvdata.csv", "w") as f:
             writer = csv.writer(f, lineterminator="\n")
             csvdata = header + csvdata
