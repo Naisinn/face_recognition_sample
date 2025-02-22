@@ -1,20 +1,24 @@
+# システム全体のパッケージ（apt でインストールされた picamera2 も含む）を仮想環境内で利用できるように
+import sys
+sys.path.append("/usr/lib/python3/dist-packages")
+
 import face_recognition
 import cv2
 import numpy as np
 from dispFps import DispFps
 import csv
 
-# This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
-# other example, but it includes some basic performance tweaks to make things run a lot faster:
-#   1. Process each video frame at 1/4 resolution (though still display it at full resolution)
-#   2. Only detect faces in every other frame of video.
-
-# PLEASE NOTE: This example requires OpenCV (the `cv2` library) to be installed only to read from your webcam.
-# OpenCV is *not* required to use the face_recognition library. It's only required if you want to run this
-# specific demo. If you have trouble installing it, try any of the other demos that don't require it instead.
+# 追加：Picamera2 と time のインポート
+from picamera2 import Picamera2
+import time
 
 # Get a reference to webcam #0 (the default one)
-video_capture = cv2.VideoCapture(0)
+# 変更：cv2.VideoCapture(0) の代わりに Picamera2 を使用
+picam2 = Picamera2()
+config = picam2.create_preview_configuration(main={"format": "XRGB8888", "size": (640, 480)})
+picam2.configure(config)
+picam2.start()
+time.sleep(1)
 
 # Load a sample picture and learn how to recognize it.
 me_image = face_recognition.load_image_file("me.jpg")
@@ -45,7 +49,10 @@ dispFps = DispFps()
 
 while True:
     # Grab a single frame of video
-    ret, frame = video_capture.read()
+    # 変更：Picamera2 で1フレームを取得（numpy.ndarray形式）し、4チャンネル(XRGB8888)→RGB→BGRに変換
+    frame_4ch = picam2.capture_array("main")
+    rgb_image = frame_4ch[:, :, 1:]  # 最初のチャンネルを捨てて RGB を得る
+    frame = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)  # OpenCV 表示用に BGR に変換
 
     # Resize frame of video to 1/4 size for faster face recognition processing
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
@@ -115,5 +122,6 @@ while True:
         break
 
 # Release handle to the webcam
-video_capture.release()
+# 変更：cv2.VideoCapture の代わりに picamera2 の停止処理
+picam2.stop()
 cv2.destroyAllWindows()
