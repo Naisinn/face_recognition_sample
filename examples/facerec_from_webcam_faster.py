@@ -59,6 +59,8 @@ while True:
 
     # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
     rgb_small_frame = small_frame[:, :, ::-1]
+    # 追加：face_recognition で正しく処理できるように C-contiguous な配列に変換
+    rgb_small_frame = np.ascontiguousarray(rgb_small_frame)
 
     # Only process every other frame of video to save time
     if process_this_frame:
