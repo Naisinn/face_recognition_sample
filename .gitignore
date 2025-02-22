@@ -63,3 +63,7 @@ target/
 .python-version
 
 .idea/
+
+#プライベート画像
+examples/me.jpg
+examples/me2.jpg
