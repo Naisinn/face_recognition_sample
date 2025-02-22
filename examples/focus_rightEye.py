@@ -94,6 +94,11 @@ while True:
 
     process_this_frame = not process_this_frame
 
+    # 追加：各顔の右目の座標をコンソールに出力
+    for landmarks in landmarks_list:
+        if "right_eye" in landmarks:
+            print("Right eye coordinates:", landmarks["right_eye"])
+
     # Display the results
     for (top, right, bottom, left), name in zip(face_locations, face_names):
         # Scale back up face locations since the frame we detected in was scaled to 1/4 size
