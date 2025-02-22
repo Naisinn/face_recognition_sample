@@ -49,10 +49,9 @@ dispFps = DispFps()
 
 while True:
     # Grab a single frame of video
-    # 変更：Picamera2 で1フレームを取得（numpy.ndarray形式）し、4チャンネル(XRGB8888)→RGB→BGRに変換
+    # 変更：Picamera2 で1フレームを取得（numpy.ndarray形式）し、4チャンネル(XRGB8888)→BGRに変換
     frame_4ch = picam2.capture_array("main")
-    rgb_image = frame_4ch[:, :, 1:]  # 最初のチャンネルを捨てて RGB を得る
-    frame = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)  # OpenCV 表示用に BGR に変換
+    frame = cv2.cvtColor(frame_4ch, cv2.COLOR_BGRA2BGR)
 
     # Resize frame of video to 1/4 size for faster face recognition processing
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
