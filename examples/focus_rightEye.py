@@ -47,6 +47,9 @@ process_this_frame = True
 csvdata = []
 dispFps = DispFps()
 
+# 追加：ランドマーク情報を保持する変数
+landmarks_list = []
+
 while True:
     # Grab a single frame of video
     # 変更：Picamera2 で1フレームを取得（numpy.ndarray形式）し、4チャンネル(XRGB8888)→BGRに変換
@@ -86,8 +89,15 @@ while True:
 
             face_names.append(name)
 
+        # 追加：顔のランドマークを推定
+        landmarks_list = face_recognition.face_landmarks(rgb_small_frame)
+
     process_this_frame = not process_this_frame
 
+    # 追加：各顔の右目の座標をコンソールに出力
+    for landmarks in landmarks_list:
+        if "right_eye" in landmarks:
+            print("Right eye coordinates:", landmarks["right_eye"])
 
     # Display the results
     for (top, right, bottom, left), name in zip(face_locations, face_names):
@@ -104,6 +114,13 @@ while True:
         cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+    # 追加：全てのランドマーク（顔の各要素）の描画
+    # 小さい画像上の座標なので、元の画像サイズに合わせるために各座標を4倍する
+    for landmarks in landmarks_list:
+        for feature, points in landmarks.items():
+            for (x, y) in points:
+                cv2.circle(frame, (x * 4, y * 4), 2, (0, 255, 0), -1)
 
     time, fps, cpu_temp = dispFps.disp(frame)
     fps = fps.replace('FPS: ', '')
