@@ -17,7 +17,7 @@
 
 - **ハードウェア:** Raspberry Pi 4 (4GB)
 - **カメラ:** Raspberry Pi Camera Module v3 (imx708_wide)
-- **OS:** Debian:Bookworm
+- **OS:** Debian:Bookworm　64ビット環境（AArch64）
 - **ライブラリ:**
   - OpenCV (opencv-python, opencv-contrib-python)
   - dlib
@@ -80,13 +80,32 @@
    mkdir -p dlib
    git clone -b 'v19.9' --single-branch https://github.com/davisking/dlib.git dlib/
    cd dlib
-   sudo python3 setup.py install --compiler-flags "-mfpu=neon"
+   sudo python3 setup.py install
 
    # face_recognition のインストール
    pip3 install face_recognition
    ```
 
-4. **スクリプト実行**  
+4. **CMakeLists.txt の修正**  
+   Raspberry Pi の 64ビット（AArch64）環境では、NEON 命令セットはハードウェア側で常に有効なため、従来の 32ビット向け設定である “-mfpu=neon” オプションは不要です。このオプションが渡されるとビルド時にエラーが発生します。  
+   修正方法は以下の通りです。
+
+   1. **対象ファイルを開く**  
+      `dlib/dlib/CMakeLists.txt`（または、該当するオプション設定部分）をテキストエディタで開きます。
+
+   2. **条件分岐を追加する**  
+      以下のように、プロセッサが armv7 の場合のみ “-mfpu=neon” を追加する条件分岐に置き換えます。
+
+      ```cmake
+      if(CMAKE_SYSTEM_PROCESSOR MATCHES "armv7")
+          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon")
+      endif()
+      ```
+
+   3. **保存して再ビルド**  
+      修正後、再度 dlib のビルドとインストールを実行してください。
+
+5. **スクリプト実行**  
    下記の 3 つのスクリプトを使用してください。
    - `examples/facerec_from_webcam_faster.py`
    - `examples/find_facial_features_in_webcam.py`
@@ -114,4 +133,3 @@
 ## まとめ
 
 このプロジェクトは、Raspberry Pi の Debian:Bookworm 環境に適応し、顔認識および顔特徴推定を行うスクリプト群を更新したものです。各スクリプトは、セットアップ手順に従ってインストールした後、期待通りに動作することを確認してください。
-
